@@ -1,0 +1,1211 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+
+    <!-- iOS Safari Theme Color & Fullscreen Adjustments -->
+    <meta name="theme-color" content="#0B0B0C" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#0B0B0C" media="(prefers-color-scheme: light)">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <title>博爾蓋塞美術館互動導覽 | Galleria Borghese Audio Guide</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;700&family=Inter:wght@400;500;600;700;800&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        ferrari: {
+                            red: '#EF0000',       /* Rosso Corsa */
+                            darkred: '#990000',   /* Deep Racing Red */
+                            yellow: '#FFD700',    /* Giallo Modena */
+                            gold: '#F59E0B',      /* Racing Gold */
+                            carbon: '#09090A',    /* Carbon Fiber Base */
+                            card: '#161619',      /* Cockpit Panel Dark */
+                            border: '#2A2A30'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans TC', 'sans-serif'],
+                        tech: ['Chakra Petch', 'Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style> 
+        html { 
+            scroll-behavior: smooth; 
+            -webkit-tap-highlight-color: transparent; 
+            background-color: #ffffff; 
+        } 
+        body { 
+            font-family: 'Inter', 'Noto Sans TC', -apple-system, sans-serif; 
+            background-color: #ffffff; 
+            color: #111827; 
+            overflow-x: hidden; 
+        } 
+        
+        .bg-carbon-pattern { 
+            background-color: #0d0d10; 
+            background-image:  
+                radial-gradient(rgba(239, 0, 0, 0.12) 1px, transparent 0), 
+                linear-gradient(45deg, #16161a 25%, transparent 25%, transparent 75%, #16161a 75%, #16161a), 
+                linear-gradient(45deg, #16161a 25%, transparent 25%, transparent 75%, #16161a 75%, #16161a); 
+            background-size: 24px 24px, 8px 8px, 8px 8px; 
+            background-position: 0 0, 0 0, 4px 4px; 
+        } 
+    
+        .no-scrollbar::-webkit-scrollbar { 
+            display: none; 
+        } 
+        .no-scrollbar { 
+            -ms-overflow-style: none; 
+            scrollbar-width: none; 
+        } 
+        
+        .header-safe-area { 
+            padding-top: max(0.75rem, calc(env(safe-area-inset-top, 20px) + 0.25rem)); 
+        } 
+    
+        .dock-safe-area { 
+            position: fixed; 
+            left: 1rem; 
+            right: 1rem; 
+            bottom: max(0.75rem, calc(env(safe-area-inset-bottom, 0px) + 0.5rem)); 
+            background: rgba(13, 13, 16, 0.94); 
+            backdrop-filter: blur(20px); 
+            -webkit-backdrop-filter: blur(20px); 
+            border: 1px solid rgba(239, 0, 0, 0.45); 
+            box-shadow:  
+                inset 0 1px 1px rgba(255, 255, 255, 0.15), 
+                0 0 20px rgba(239, 0, 0, 0.25), 
+                0 15px 30px -10px rgba(0, 0, 0, 0.6); 
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1); 
+            z-index: 50; 
+        } 
+    
+        .ferrari-stripe { 
+            background: linear-gradient(90deg, #EF0000 0%, #FFD700 50%, #EF0000 100%); 
+        } 
+    
+        .carbon-card, .carbon-card-active { 
+            background-color: #0d0d10; 
+            background-image:  
+                radial-gradient(rgba(239, 0, 0, 0.1) 1px, transparent 0), 
+                linear-gradient(45deg, #16161a 25%, transparent 25%, transparent 75%, #16161a 75%, #16161a), 
+                linear-gradient(45deg, #16161a 25%, transparent 25%, transparent 75%, #16161a 75%, #16161a); 
+            background-size: 24px 24px, 8px 8px, 8px 8px; 
+            background-position: 0 0, 0 0, 4px 4px; 
+            border: 1px solid rgba(255, 255, 255, 0.12); 
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18); 
+            position: relative; 
+            overflow: hidden; 
+            color: #E5E7EB;
+        } 
+
+        .carbon-card::before, .carbon-card-active::before { 
+            content: ''; 
+            position: absolute; 
+            top: 0; left: 0; right: 0; 
+            height: 2px; 
+            background: linear-gradient(90deg, #EF0000, #FFD700, #EF0000); 
+            transition: opacity 0.4s ease; 
+        } 
+
+        .carbon-card::before { 
+            opacity: 0.25; 
+        } 
+        
+        .carbon-card:hover::before, .carbon-card-active::before { 
+            opacity: 1; 
+            background: linear-gradient(90deg, #EF0000, #FFD700, #EF0000); 
+        } 
+
+        .carbon-card-active {
+            border-color: rgba(239, 0, 0, 0.7);
+            box-shadow: 0 0 18px rgba(239, 0, 0, 0.25);
+        }
+    
+        /* 地圖展廳動態亮燈與閃爍效果 */
+        .room-box {
+            transition: fill 0.2s ease, stroke 0.2s ease;
+            cursor: pointer;
+            fill: #273043;
+            stroke: #4b5563;
+            stroke-width: 1;
+        }
+
+        .room-box:hover {
+            fill: #990000;
+            stroke: #FFD700;
+            stroke-width: 1.5;
+        }
+
+        .room-box.active-room {
+            fill: #EF0000 !important;
+            stroke: #FFD700 !important;
+            stroke-width: 3px;
+            animation: roomPulse 0.8s infinite alternate ease-in-out;
+            filter: drop-shadow(0 0 12px #EF0000);
+        }
+
+        .room-blue { fill: #2e4374; stroke: #415a96; }
+        .room-green { fill: #2d6a4f; stroke: #40916c; }
+
+        .room-label {
+            font-size: 8px;
+            font-weight: bold;
+            fill: #ffffff;
+            pointer-events: none;
+            text-anchor: middle;
+            dominant-baseline: central;
+            font-family: 'Chakra Petch', sans-serif;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+        }
+
+        @keyframes roomPulse {
+            0% {
+                fill: #EF0000;
+                stroke: #FFD700;
+                filter: drop-shadow(0 0 4px #EF0000);
+                opacity: 0.6;
+            }
+            100% {
+                fill: #FFD700;
+                stroke: #EF0000;
+                filter: drop-shadow(0 0 16px #FFD700);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body class="bg-white min-h-screen flex items-center justify-center p-0 sm:p-4">
+
+    <!-- Single Phone Frame Outer Container -->
+    <div id="app" class="w-full max-w-[430px] h-dvh sm:h-[880px] bg-white sm:rounded-[42px] shadow-2xl sm:border-[6px] border-gray-200 flex flex-col overflow-hidden relative pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+
+        <!-- Top Sticky Header -->
+        <header class="sticky top-0 z-50 flex flex-col px-4 pt-2 pb-3 header-safe-area text-white transition-colors bg-[#0B0B0D]/95 backdrop-blur-xl border-b border-red-900/40 shadow-md">
+            <div class="h-1 w-full ferrari-stripe rounded-full mb-2"></div>
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-yellow-400 to-yellow-600 p-0.5 shadow-lg shadow-yellow-500/20 flex items-center justify-center shrink-0">
+                        <div class="w-full h-full bg-black rounded-[7px] flex items-center justify-center p-1">
+                            <i data-lucide="landmark" class="w-5 h-5 text-ferrari-yellow"></i>
+                        </div>
+                    </div>
+                    <div class="flex flex-col justify-center">
+                        <p class="font-tech text-[14px] font-bold uppercase tracking-widest text-amber-300 leading-none">Galleria Borghese</p>
+                        <h1 class="text-[18px] font-black text-white font-sans tracking-tight leading-tight mt-0.5">博爾蓋塞美術館互動導覽</h1>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN SCROLLABLE CONTENT AREA -->
+        <div id="main-content" class="flex-1 overflow-y-auto no-scrollbar pb-32 bg-white">
+            
+            <!-- Tab 1: Artworks List -->
+            <div id="tab-artworks" class="p-4 space-y-4">
+                
+                <!-- Hero Header Card -->
+                <div class="carbon-card rounded-2xl p-4 border border-white/10">
+                    <div class="flex items-start justify-between relative z-10">
+                        <div>
+                            <span class="inline-block px-2 py-0.5 rounded bg-ferrari-carbon border border-ferrari-red text-ferrari-yellow text-[14px] font-extrabold uppercase tracking-widest mb-1 shadow-sm">
+                                BORGHESE MASTERPIECES
+                            </span>
+                            <h1 class="text-[20px] font-black text-metal tracking-tight">博爾蓋塞殿堂級巨作</h1>
+                            <p class="text-[14px] text-gray-400 mt-1">貝尼尼巴洛克雕塑與卡拉瓦喬光影名畫精華</p>
+                        </div>
+                        <div class="text-center bg-black/50 p-2 rounded-xl border border-white/10">
+                            <i data-lucide="headphones" class="w-5 h-5 text-ferrari-red mx-auto"></i>
+                        </div>
+                    </div>
+                    
+                    <!-- Search & Filter -->
+                    <div class="mt-4 flex items-center gap-2">
+                        <div class="relative flex-1">
+                            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-gray-400"></i>
+                            <input type="text" id="search-input" oninput="filterArtworks()" placeholder="搜尋藝術家、作品或展廳 (如: 貝尼尼, Room 8)" 
+                                class="w-full bg-black/60 border border-white/15 rounded-xl pl-9 pr-3 py-1.5 text-[15px] text-white placeholder-gray-500 focus:outline-none focus:border-ferrari-red transition-all">
+                        </div>
+                        <button onclick="toggleFavoriteFilter()" id="fav-filter-btn" class="p-2 bg-black/60 border border-white/15 rounded-xl text-gray-400 hover:text-ferrari-yellow transition">
+                            <i data-lucide="bookmark" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Floor Category Filter Buttons -->
+                <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+                    <button onclick="filterByFloor('all')" class="floor-tab-btn active text-[15px] font-bold px-3 py-1.5 rounded-xl border border-ferrari-red bg-ferrari-carbon text-ferrari-yellow whitespace-nowrap shadow-sm">
+                        全部展品 (17)
+                    </button>
+                    <button onclick="filterByFloor('0F')" class="floor-tab-btn text-[15px] font-bold px-3 py-1.5 rounded-xl border border-gray-700 bg-carbon-pattern text-gray-300 hover:text-white whitespace-nowrap">
+                        地下層 (雕塑區 Room 1-8)
+                    </button>
+                    <button onclick="filterByFloor('1F')" class="floor-tab-btn text-[15px] font-bold px-3 py-1.5 rounded-xl border border-gray-700 bg-carbon-pattern text-gray-300 hover:text-white whitespace-nowrap">
+                        一樓 (畫廊區 Room 9-20)
+                    </button>
+                </div>
+
+                <!-- Dynamic Artworks Container -->
+                <div id="artwork-list" class="space-y-3">
+                    <!-- Populated dynamically via JS -->
+                </div>
+
+            </div>
+
+            <!-- Tab 2: Map Tab -->
+            <div id="tab-map" class="p-4 hidden space-y-4">
+                <div class="carbon-card p-4 rounded-2xl border border-white/10">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <h2 class="text-[19px] font-bold text-metal flex items-center gap-2">
+                                <i data-lucide="map" class="w-4 h-4 text-ferrari-red"></i> 博爾蓋塞展廳實境地圖
+                            </h2>
+                            <p class="text-[14px] text-gray-400">點擊展廳區塊定位，支援拖曳與縮放</p>
+                        </div>
+                        <div class="flex gap-1 bg-black/40 p-1 rounded-xl border border-white/10">
+                            <button onclick="switchMapFloor('0F')" id="btn-map-0f" class="text-[14px] px-2.5 py-1 rounded-lg font-bold bg-ferrari-carbon border border-ferrari-red text-white">地下層</button>
+                            <button onclick="switchMapFloor('1F')" id="btn-map-1f" class="text-[14px] px-2.5 py-1 rounded-lg font-bold text-gray-400 hover:text-white">一樓</button>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Map Container -->
+                    <div id="map-container" class="relative bg-[#09090c] rounded-xl overflow-hidden border border-white/10 p-2 min-h-[380px] flex flex-col justify-between select-none">
+                        
+                        <div class="flex justify-between items-center z-10 mb-1">
+                            <span id="map-floor-title" class="text-[14px] font-tech font-bold text-ferrari-gold bg-black/80 px-2 py-0.5 rounded border border-white/10">
+                                GROUND FLOOR (地下層：雕塑與卡拉瓦喬廳)
+                            </span>
+                            
+                            <!-- Zoom & Pan Controls -->
+                            <div class="flex items-center gap-1 bg-black/80 px-1.5 py-0.5 rounded border border-white/10">
+                                <button onclick="zoomMap(0.3)" title="放大" class="p-1 text-gray-300 hover:text-ferrari-yellow active:scale-95 transition">
+                                    <i data-lucide="zoom-in" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="zoomMap(-0.3)" title="縮小" class="p-1 text-gray-300 hover:text-ferrari-yellow active:scale-95 transition">
+                                    <i data-lucide="zoom-out" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="resetMapZoom()" title="重設位置" class="p-1 text-gray-300 hover:text-ferrari-yellow active:scale-95 transition">
+                                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 地下層 (0F) Map SVG Canvas -->
+                        <div id="map-graphic-0f" class="my-1 relative w-full h-[340px] bg-black/80 rounded-lg border border-white/10 overflow-hidden cursor-grab active:cursor-grabbing touch-none">
+                            <div id="map-viewport-0f" class="w-full h-full origin-top-left transition-transform duration-75">
+                                <svg class="w-full h-full select-none" viewBox="0 0 640 400" preserveAspectRatio="xMinYMin meet" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <!-- Grand Entrance Hall (Salone di Mariano Rossi) -->
+                                    <rect x="220" y="140" width="200" height="120" fill="#182238" stroke="#334155" rx="4"/>
+                                    <text x="320" y="195" text-anchor="middle" fill="#94a3b8" font-size="12" font-family="'Chakra Petch', sans-serif" font-weight="bold">ENTRANCE HALL (SALONE)</text>
+
+                                    <!-- Sculpture Rooms -->
+                                    <rect id="room-R1" onclick="selectArtworkByRoom('R1')" class="room-box room-blue" x="80" y="140" width="120" height="70" rx="3"/>
+                                    <text x="140" y="175" class="room-label">Room 1 (Canova)</text>
+
+                                    <rect id="room-R2" onclick="selectArtworkByRoom('R2')" class="room-box room-blue" x="80" y="230" width="120" height="70" rx="3"/>
+                                    <text x="140" y="265" class="room-label">Room 2 (David)</text>
+
+                                    <rect id="room-R3" onclick="selectArtworkByRoom('R3')" class="room-box room-blue" x="220" y="280" width="90" height="80" rx="3"/>
+                                    <text x="265" y="320" class="room-label">Room 3 (Daphne)</text>
+
+                                    <rect id="room-R4" onclick="selectArtworkByRoom('R4')" class="room-box room-blue" x="330" y="280" width="90" height="80" rx="3"/>
+                                    <text x="375" y="320" class="room-label">Room 4 (Proserpina)</text>
+
+                                    <rect id="room-R6" onclick="selectArtworkByRoom('R6')" class="room-box room-blue" x="440" y="230" width="120" height="70" rx="3"/>
+                                    <text x="500" y="265" class="room-label">Room 6 (Aeneas)</text>
+
+                                    <rect id="room-R8" onclick="selectArtworkByRoom('R8')" class="room-box room-blue" x="440" y="110" width="120" height="100" rx="3"/>
+                                    <text x="500" y="160" class="room-label">Room 8 (Caravaggio)</text>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- 一樓 (1F) Map SVG Canvas -->
+                        <div id="map-graphic-1f" class="my-1 relative w-full h-[340px] bg-black/80 rounded-lg border border-white/10 overflow-hidden hidden cursor-grab active:cursor-grabbing touch-none">
+                            <div id="map-viewport-1f" class="w-full h-full origin-top-left transition-transform duration-75">
+                                <svg class="w-full h-full select-none" viewBox="0 0 640 400" preserveAspectRatio="xMinYMin meet" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect x="220" y="140" width="200" height="120" fill="#1c1917" stroke="#334155" rx="4"/>
+                                    <text x="320" y="195" text-anchor="middle" fill="#94a3b8" font-size="12" font-family="'Chakra Petch', sans-serif" font-weight="bold">FIRST FLOOR GALLERY</text>
+
+                                    <rect id="room-R9" onclick="selectArtworkByRoom('R9')" class="room-box room-green" x="80" y="140" width="120" height="80" rx="3"/>
+                                    <text x="140" y="180" class="room-label">Room 9 (Raphael)</text>
+
+                                    <rect id="room-R10" onclick="selectArtworkByRoom('R10')" class="room-box room-green" x="80" y="240" width="120" height="70" rx="3"/>
+                                    <text x="140" y="275" class="room-label">Room 10 (Correggio)</text>
+
+                                    <rect id="room-R18" onclick="selectArtworkByRoom('R18')" class="room-box room-green" x="440" y="240" width="120" height="70" rx="3"/>
+                                    <text x="500" y="275" class="room-label">Room 18 (Rubens)</text>
+
+                                    <rect id="room-R20" onclick="selectArtworkByRoom('R20')" class="room-box room-green" x="440" y="120" width="120" height="100" rx="3"/>
+                                    <text x="500" y="170" class="room-label">Room 20 (Titian)</text>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between text-[14px] text-gray-300 font-tech bg-black/80 p-2 rounded-lg border border-white/10">
+                            <span class="flex items-center gap-1"><i data-lucide="hand" class="w-3.5 h-3.5 text-ferrari-yellow"></i> 支援單手指拖曳 & 雙指縮放</span>
+                            <span id="flashing-room-tag" class="text-ferrari-gold font-bold">點選房間以選取作品</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Itinerary Route Steps -->
+                <div class="carbon-card p-4 rounded-2xl border border-white/10">
+                    <h3 class="text-[17px] font-bold text-metal mb-1 flex items-center gap-2">
+                        <i data-lucide="route" class="w-4 h-4 text-ferrari-red"></i> 博爾蓋塞現場「最值得停下來聽」順序
+                    </h3>
+                    <p class="text-[13px] text-gray-400 mb-3">若時間有限（約2小時），建議優先跟隨以下順序參觀：</p>
+                    <div id="route-steps" class="space-y-2">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Info & Viewpoints Tab -->
+            <div id="tab-info" class="p-4 hidden space-y-4">
+                
+                <!-- 參觀叮嚀與貼心提示卡片 -->
+                <div class="carbon-card p-4 rounded-2xl border border-white/10 space-y-3">
+                    <h2 class="text-[20px] font-bold text-metal flex items-center gap-2">
+                        <i data-lucide="info" class="w-4 h-4 text-ferrari-red"></i> 參觀叮嚀與博爾蓋塞指南
+                    </h2>
+                    
+                    <div class="space-y-2.5 text-[15px]">
+                        <div class="p-3 bg-black/40 rounded-xl border border-white/10 flex items-start gap-3">
+                            <div class="w-7 h-7 rounded-lg bg-ferrari-red/20 border border-ferrari-red/40 flex items-center justify-center text-ferrari-red shrink-0 mt-0.5">
+                                <i data-lucide="clock" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-ferrari-gold">預約與入場時限 (Timed Entry)</div>
+                                <p class="text-gray-300 mt-0.5">博爾蓋塞美術館採取嚴格預約制，每次入場時間限為 2 小時，請務必提早 30 分鐘抵達寄物與取票。</p>
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-black/40 rounded-xl border border-white/10 flex items-start gap-3">
+                            <div class="w-7 h-7 rounded-lg bg-ferrari-red/20 border border-ferrari-red/40 flex items-center justify-center text-ferrari-red shrink-0 mt-0.5">
+                                <i data-lucide="footprints" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-ferrari-gold">核心脈絡 (Core Context)</div>
+                                <p class="text-gray-300 mt-0.5">貫穿線索：古典神話 → 貝尼尼巴洛克動態 → 卡拉瓦喬寫實明暗 → 拉斐爾文藝復興 → 提香色彩與愛情寓意 → 卡諾瓦新古典主義。</p>
+                            </div>
+                        </div>
+
+                        <div class="p-3 bg-black/40 rounded-xl border border-white/10 flex items-start gap-3">
+                            <div class="w-7 h-7 rounded-lg bg-ferrari-red/20 border border-ferrari-red/40 flex items-center justify-center text-ferrari-red shrink-0 mt-0.5">
+                                <i data-lucide="baggage-claim" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <div class="font-bold text-ferrari-gold">寄物規定 (Checkroom)</div>
+                                <p class="text-gray-300 mt-0.5">所有中大型包包、背包、雨傘水瓶均須免費寄放地下層寄物處，僅可攜帶隨身手機與皮夾。</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Viewpoints Card -->
+                <div class="carbon-card p-4 rounded-2xl border border-white/10 space-y-3">
+                    <h2 class="text-[20px] font-bold text-metal border border-white/10 flex items-center gap-2">
+                        <i data-lucide="sparkles" class="w-4 h-4 text-ferrari-red"></i> 博爾蓋塞核心必聽亮點
+                    </h2>
+                    
+                    <div class="space-y-2 text-[15px]">
+                        <div class="p-3 bg-black/40 rounded-xl border border-white/10">
+                            <div class="font-bold text-ferrari-gold flex items-center justify-between">
+                                <span>1. 貝尼尼四大巨型雕塑</span>
+                                <span class="text-[13px] font-tech text-gray-400">Room 2, 3, 4, 6</span>
+                            </div>
+                            <p class="text-gray-400 mt-1">定格大理石軟肉感的極致動態，感受觀眾被直接納入戰鬥與變身劇情的空間感。</p>
+                        </div>
+
+                        <div class="p-3 bg-black/40 rounded-xl border border-white/10">
+                            <div class="font-bold text-ferrari-gold flex items-center justify-between">
+                                <span>2. 卡拉瓦喬五大革命繪畫</span>
+                                <span class="text-[13px] font-tech text-gray-400">Room 8</span>
+                            </div>
+                            <p class="text-gray-400 mt-1">從寫實水果到黑暗聚光燈，神話聖徒化為真實市井凡人與自畫像反省。</p>
+                        </div>
+
+                        <div class="p-3 bg-black/40 rounded-xl border border-white/10">
+                            <div class="font-bold text-ferrari-gold flex items-center justify-between">
+                                <span>3. 拉斐爾與提香傑作</span>
+                                <span class="text-[13px] font-tech text-gray-400">Room 9 & 20</span>
+                            </div>
+                            <p class="text-gray-400 mt-1">文藝復興的和諧構圖，搭配威尼斯畫派提香極富詩意的寓意色彩。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Floating Navigation & Mini Audio Bar -->
+        <div class="dock-safe-area rounded-2xl px-4 py-2 flex items-center justify-between">
+            <!-- Mini Player Quick Status -->
+            <div class="flex items-center gap-3 cursor-pointer flex-1 min-w-0" onclick="openArtworkModal()">
+                <img id="player-thumb" src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Canova_paolina_borghese_01.jpg/800px-Canova_paolina_borghese_01.jpg" 
+                    alt="Current Artwork" class="w-9 h-9 rounded-lg object-cover border border-ferrari-red">
+                <div class="min-w-0 flex-1">
+                    <div class="flex items-center gap-1.5">
+                        <span id="player-room" class="text-[13px] font-tech bg-ferrari-carbon border border-ferrari-red text-white px-1 rounded font-bold">Room 1</span>
+                        <h4 id="player-title" class="text-[15px] font-bold text-white truncate">保利娜・波拿巴</h4>
+                    </div>
+                    <p id="player-artist" class="text-[13px] text-gray-400 truncate">卡諾瓦 (Canova)</p>
+                    <div class="w-full bg-black/60 rounded-full h-1 mt-1 overflow-hidden">
+                        <div id="audio-progress-bar" class="bg-gradient-to-r from-ferrari-yellow to-ferrari-red h-full w-0 transition-all duration-300"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Play & Pause Control -->
+            <button onclick="toggleAudioSpeech()" id="player-play-btn" class="w-9 h-9 rounded-full bg-ferrari-carbon border border-ferrari-gold text-ferrari-gold flex items-center justify-center hover:scale-105 active:scale-95 transition ml-2">
+                <i id="play-icon" data-lucide="play" class="w-4 h-4 ml-0.5"></i>
+            </button>
+
+            <div class="h-6 w-[1px] bg-white/10 mx-2"></div>
+
+            <!-- Navigation Tabs -->
+            <div class="flex items-center gap-3">
+                <button onclick="switchTab('artworks')" id="nav-artworks" class="nav-btn active text-ferrari-yellow">
+                    <i data-lucide="palette" class="w-5 h-5"></i>
+                </button>
+                <button onclick="switchTab('map')" id="nav-map" class="nav-btn text-gray-500 hover:text-ferrari-yellow">
+                    <i data-lucide="map-pin" class="w-5 h-5"></i>
+                </button>
+                <button onclick="switchTab('info')" id="nav-info" class="nav-btn text-gray-500 hover:text-ferrari-yellow">
+                    <i data-lucide="compass" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Artwork Detailed Modal -->
+        <div id="artwork-modal" class="fixed inset-y-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-black/95 z-50 flex flex-col hidden backdrop-blur-2xl sm:rounded-[42px] overflow-hidden">
+            <!-- Modal Header -->
+            <div class="bg-[#111114]/90 backdrop-blur border-b border-white/10 px-4 pb-3 flex items-center justify-between z-20 pt-[calc(env(safe-area-inset-top)+12px)] sm:pt-4">
+                <button onclick="closeArtworkModal()" class="p-2 text-gray-400 hover:text-white bg-black/40 rounded-xl border border-white/10 active:scale-95 transition-transform">
+                    <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                </button>
+                <span class="text-[15px] font-tech font-bold text-metal tracking-widest uppercase">BORGHESE AUDIO GUIDE</span>
+                <button onclick="toggleCurrentFavorite()" id="modal-fav-btn" class="p-2 text-gray-400 hover:text-ferrari-yellow bg-black/40 rounded-xl border border-white/10 active:scale-95 transition-transform">
+                    <i data-lucide="bookmark" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content Body -->
+            <div class="p-5 space-y-5 flex-1 overflow-y-auto pb-[calc(env(safe-area-inset-bottom)+20px)] sm:pb-5">
+                <div class="relative rounded-2xl overflow-hidden border border-white/10 shadow-2xl bg-black">
+                    <img id="modal-image" src="" alt="Artwork" class="w-full h-[260px] object-contain block">
+                    <span id="modal-room-badge" class="absolute top-3 left-3 bg-ferrari-carbon border border-ferrari-red text-white font-tech text-[14px] font-black px-2.5 py-1 rounded-lg tracking-wider select-none z-10">
+                        Room 1
+                    </span>
+                </div>
+
+                <div class="space-y-1">
+                    <h2 id="modal-title" class="text-[22px] font-bold text-white">保利娜・波拿巴化身勝利女神維納斯</h2>
+                    <div class="flex items-center gap-2 text-[15px] font-tech text-ferrari-gold">
+                        <span id="modal-artist">卡諾瓦 (Canova)</span>
+                        <span>·</span>
+                        <span id="modal-year" class="text-gray-400">1805–1808</span>
+                    </div>
+                </div>
+
+                <!-- Dashboard Audio Control Console -->
+                <div class="p-4 rounded-2xl carbon-card border border-ferrari-red/40 space-y-3">
+                    <div class="flex items-center justify-between text-[14px] font-tech">
+                        <span class="text-gray-300 flex items-center gap-1"><i data-lucide="volume-2" class="w-4 h-4 text-ferrari-red"></i> 語音導覽 (Speech Synthesis)</span>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-1">
+                        <button onclick="changeSpeed()" id="modal-speed-btn" class="text-[13px] font-tech text-gray-300 bg-black/50 px-2.5 py-1 rounded border border-white/10 hover:text-white">
+                            1.0x 語速
+                        </button>
+
+                        <button onclick="toggleAudioSpeech()" id="modal-play-btn" class="w-12 h-12 rounded-full bg-ferrari-carbon border border-ferrari-gold text-ferrari-gold flex items-center justify-center hover:scale-105 active:scale-95 transition">
+                            <i id="modal-play-icon" data-lucide="play" class="w-6 h-6 ml-0.5"></i>
+                        </button>
+
+                        <button onclick="readAudioSpeech()" class="text-[13px] font-tech text-ferrari-red bg-black/50 px-2.5 py-1 rounded border border-white/10">
+                            重頭播放
+                        </button>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <h3 class="text-[16px] font-bold text-ferrari-gold flex items-center gap-1.5 border-b border-white/10 pb-2">
+                        <i data-lucide="file-text" class="w-4 h-4 text-ferrari-red"></i> 🎧 語音導覽解說
+                    </h3>
+                    <p id="modal-description" class="text-[15px] leading-relaxed text-gray-200">
+                    </p>
+                </div>
+
+                <div class="p-3 bg-black/40 rounded-xl border border-white/10 space-y-1.5">
+                    <span class="text-[15px] font-tech font-bold text-ferrari-gold flex items-center gap-1">
+                        <i data-lucide="eye" class="w-4 h-4"></i> 賞析重點 Look For:
+                    </span>
+                    <p id="modal-highlights" class="text-[15px] text-white">
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        /* ARTWORK DATABASE FOR BORGHESE GALLERY */
+        const artworksData = [
+            {
+                id: 'canova-paulina',
+                title: '① 《保利娜・波拿巴化身勝利女神維納斯》',
+                artist: '卡諾瓦 (Antonio Canova)',
+                year: '1805–1808',
+                floor: '0F',
+                room: 'Room 1',
+                roomCode: 'R1',
+                img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/Canova_paolina_borghese_01.jpg/800px-Canova_paolina_borghese_01.jpg',
+                audioText: '這是新古典主義雕塑大師卡諾瓦的代表作，主角是拿破崙的妹妹保利娜・波拿巴。她手上拿著蘋果，代表希臘神話中維納斯得到「最美麗女神」的金蘋果，因此保利娜也被塑造成愛與美的女神。請注意她的皮膚、肩膀和大腿，大理石卻呈現出柔軟的肉體感。最特別的是她的姿勢：半躺在床榻上，身體形成優雅曲線，既像肖像，也像神話人物。',
+                highlights: '真人肖像＋古典女神＋理想人體的完美結合。'
+            },
+            {
+                id: 'bernini-david',
+                title: '② 《大衛》',
+                artist: '貝尼尼 (Gian Lorenzo Bernini)',
+                year: '1623–1624',
+                floor: '0F',
+                room: 'Room 2',
+                roomCode: 'R2',
+                img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/83/Bernini_David.jpg/800px-Bernini_David.jpg',
+                audioText: '貝尼尼沒有雕刻「勝利後的大衛」，而是選擇大衛正要投出石頭的瞬間。請看他的身體——腰部、肩膀和雙腿全部扭轉，整個人充滿爆發力。再看他的表情，他眉頭緊皺，正全神貫注地瞄準歌利亞。所以這件作品最大的特色是：觀眾好像就是歌利亞。你不是站在旁邊看戰鬥，而是被放進戰鬥裡。',
+                highlights: '動態、扭轉的身體，以及貝尼尼讓觀眾參與其中的空間感。'
+            },
+            {
+                id: 'bernini-apollo-daphne',
+                title: '③ 《阿波羅與達芙妮》',
+                artist: '貝尼尼 (Gian Lorenzo Bernini)',
+                year: '1622–1625',
+                floor: '0F',
+                room: 'Room 3',
+                roomCode: 'R3',
+                img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b8/Bernini%27s_Apollo_and_Daphne%2C_Borghese.jpg/800px-Bernini%27s_Apollo_and_Daphne%2C_Borghese.jpg',
+                audioText: '這是博爾蓋塞最著名的作品之一。故事中，阿波羅追逐達芙妮，達芙妮為了逃脫而變成月桂樹。請看她的手指——已經開始變成樹枝；再看腳，已經變成樹根；頭髮則變成葉子。貝尼尼最厲害的地方，是把「正在變身」的瞬間固定在大理石裡。再看阿波羅的表情，他原本正在追逐，但下一秒才發現，自己抱住的已經不是女人，而是一棵樹。',
+                highlights: '大理石同時呈現皮膚、頭髮、樹皮與葉子的不同質感。'
+            },
+            {
+                id: 'bernini-proserpina',
+                title: '④ 《普魯托掠奪普羅塞皮娜》',
+                artist: '貝尼尼 (Gian Lorenzo Bernini)',
+                year: '1621–1622',
+                floor: '0F',
+                room: 'Room 4',
+                roomCode: 'R4',
+                img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Gian_Lorenzo_Bernini_-_The_Rape_of_Proserpina_%281621-22%29_-_Galleria_Borghese%2C_Rome_-_Detail_01.jpg/800px-Gian_Lorenzo_Bernini_-_The_Rape_of_Proserpina_%281621-22%29_-_Galleria_Borghese%2C_Rome_-_Detail_01.jpg',
+                audioText: '這件作品描繪冥王普魯托把普羅塞皮娜強行帶往冥界。第一眼請看普魯托的手。他的手指深深陷進普羅塞皮娜的大腿，明明是堅硬的大理石，卻看起來像柔軟的肉。再看普羅塞皮娜，她正在拼命向外掙扎，身體與普魯托形成強烈扭轉。旁邊的三頭地獄犬則代表冥界。',
+                highlights: '手指壓入皮膚的錯覺，以及兩個身體之間極強的力量對比。'
+            },
+            {
+                id: 'bernini-aeneas',
+                title: '⑤ 《埃涅阿斯、安喀塞斯與阿斯卡尼俄斯》',
+                artist: '貝尼尼 (Gian Lorenzo Bernini)',
+                year: '1618–1619',
+                floor: '0F',
+                room: 'Room 6',
+                roomCode: 'R6',
+                img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/70/Gian_Lorenzo_Bernini_Enea%2C_Anchise_e_Ascanio.jpg/800px-Gian_Lorenzo_Bernini_Enea%2C_Anchise_e_Ascanio.jpg',
+                audioText: '這件作品描繪特洛伊城陷落後，埃涅阿斯帶著父親和兒子逃亡。畫面其實就是三代人的身體：最上方是年老的父親，中間是強壯的埃涅阿斯，最後是年輕的兒子。所以你可以看到老人鬆弛的皮膚、中年人的肌肉，以及孩子柔軟的身體。這不只是逃難場景，也象徵一個家族把上一代的生命與記憶，傳給下一代。',
+                highlights: '三種年齡、三種人體質感，同時出現在一件雕塑裡。'
+            },
+            {
+                id: 'caravaggio-fruit-basket',
+                title: '⑥ 《水果籃男孩》',
+                artist: '卡拉瓦喬 (Caravaggio)',
+                year: 'c. 1593',
+                floor: '0F',
+                room: 'Room 8',
+                roomCode: 'R8',
+                img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Boy_with_a_Basket_of_Fruit-Caravaggio_%281593%29.jpg/800px-Boy_with_a_Basket_of_Fruit-Caravaggio_%281593%29.jpg',
+                audioText: '這是年輕卡拉瓦喬的重要作品。男孩抱著一籃水果，看起來非常普通，但請仔細看水果的成熟程度、葉子的枯萎，以及男孩的皮膚和表情。卡拉瓦喬故意把日常生活畫得像真正站在你眼前。水果也可能暗示生命的短暫與成熟，但這幅畫的象徵意義一直存在不同解讀。',
+                highlights: '極度寫實的水果、皮膚，以及「普通人也可以成為藝術主角」的革命性。'
+            },
+            {
+                id: 'caravaggio-sick-bacchus',
+                title: '⑦ 《生病的酒神巴克斯》',
+                artist: '卡拉瓦喬 (Caravaggio)',
+                year: 'c. 1593–1594',
+                floor: '0F',
+                room: 'Room 8',
+                roomCode: 'R8',
+                img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Sick_bacchus.jpg/800px-Sick_bacchus.jpg',
+                audioText: '畫中的年輕男子被認為是酒神巴克斯，但他看起來卻不像強壯的神祇，反而有些蒼白、疲倦。這正是卡拉瓦喬早期作品很有趣的地方——他不把神話人物畫得完美，而是讓他們擁有真實人的皮膚、表情與缺點。所以你看到的既是酒神，也像是一個真實坐在你面前的年輕人。',
+                highlights: '神話人物與現實人物之間的模糊界線。'
+            },
+            {
+                id: 'caravaggio-saint-jerome',
+                title: '⑧ 《聖熱羅尼莫》',
+                artist: '卡拉瓦喬 (Caravaggio)',
+                year: 'c. 1605–1606',
+                floor: '0F',
+                room: 'Room 8',
+                roomCode: 'R8',
+                img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f6/Saint_Jerome_Writing-Caravaggio_%28c._1605-1606%29.jpg/800px-Saint_Jerome_Writing-Caravaggio_%28c._1605-1606%29.jpg',
+                audioText: '先看老人，再看桌上的巨大書本和骷髏。聖熱羅尼莫正在研究、書寫宗教經文，但旁邊卻放著死亡的象徵——骷髏。這讓「知識」和「死亡」同時出現在畫面裡。再注意卡拉瓦喬的光線：光只照亮老人、書本和骷髏，其他部分幾乎完全沉入黑暗。',
+                highlights: '強烈明暗對比，以及生命與死亡的象徵。'
+            },
+            {
+                id: 'caravaggio-madonna-anne',
+                title: '⑨ 《聖母與聖安娜》',
+                artist: '卡拉瓦喬 (Caravaggio)',
+                year: '1605–1606',
+                floor: '0F',
+                room: 'Room 8',
+                roomCode: 'R8',
+                img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Caravaggio_Madonna_and_Child_with_St_Anne_%28Dei_palafrenieri%29.jpg/800px-Caravaggio_Madonna_and_Child_with_St_Anne_%28Dei_palafrenieri%29.jpg',
+                audioText: '中央是聖母瑪利亞和年幼的耶穌，耶穌正在踩住蛇。蛇象徵罪惡，因此這個動作代表基督戰勝罪惡。但這幅畫當年引起爭議，因為卡拉瓦喬沒有把聖母與耶穌畫得高高在上，而是以非常自然、甚至有些世俗的方式呈現。',
+                highlights: '神聖人物被畫成真實生活中的人，這也是卡拉瓦喬最具爭議的特色之一。'
+            },
+            {
+                id: 'caravaggio-john-baptist',
+                title: '⑩ 《聖若翰洗者》',
+                artist: '卡拉瓦喬 (Caravaggio)',
+                year: 'c. 1610',
+                floor: '0F',
+                room: 'Room 8',
+                roomCode: 'R8',
+                img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c2/Youth_with_a_Ram-Caravaggio_%28c.1602%29.jpg/800px-Youth_with_a_Ram-Caravaggio_%28c.1602%29.jpg',
+                audioText: '這幅作品中的聖若翰洗者沒有穿華麗的宗教服裝，而是坐在黑暗背景中。旁邊的公羊象徵犧牲，也與基督有關。請注意他的表情，他沒有在傳教，而是在沉思。這種孤獨、安靜又帶有一點憂鬱的氣氛，是卡拉瓦喬晚期作品非常鮮明的特色。',
+                highlights: '黑暗背景、年輕人體，以及安靜而孤獨的情緒。'
+            },
+            {
+                id: 'caravaggio-david-goliath',
+                title: '⑪ 《大衛與歌利亞》',
+                artist: '卡拉瓦喬 (Caravaggio)',
+                year: 'c. 1609–1610',
+                floor: '0F',
+                room: 'Room 8',
+                roomCode: 'R8',
+                img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Caravaggio_-_David_con_la_cabeza_de_Goliath.jpg/800px-Caravaggio_-_David_con_la_cabeza_de_Goliath.jpg',
+                audioText: '這幅畫最值得注意的是歌利亞的頭。那張臉其實被認為是卡拉瓦喬自己的自畫像。大衛雖然砍下了歌利亞的頭，卻沒有露出勝利的笑容，反而帶著悲傷與憐憫。所以這不像一幅單純歌頌英雄的作品，更像卡拉瓦喬對自己命運的反省。',
+                highlights: '歌利亞的自畫像，以及大衛「勝利卻不喜悅」的表情。'
+            },
+            {
+                id: 'raphael-deposition',
+                title: '⑫ 拉斐爾《基督下葬》',
+                artist: '拉斐爾 (Raphael)',
+                year: '1507',
+                floor: '1F',
+                room: 'Room 9',
+                roomCode: 'R9',
+                img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cd/Raphael_-_The_Deposition_-_Google_Art_Project.jpg/800px-Raphael_-_The_Deposition_-_Google_Art_Project.jpg',
+                audioText: '這幅畫描繪基督死亡後，被搬往墓穴的場景。請看中央，人物抬著基督的身體向前移動；右側的聖母則因悲傷幾乎昏厥。整個畫面充滿斜線和人物動態，所以你的視線會跟著隊伍一起移動。這件作品很重要，因為可以看到年輕拉斐爾開始把文藝復興的平衡構圖，轉變成更戲劇性的表現。',
+                highlights: '基督身體的斜線、人物群體的動態，以及聖母的悲傷。'
+            },
+            {
+                id: 'raphael-unicorn',
+                title: '⑬ 拉斐爾《抱獨角獸的女子》',
+                artist: '拉斐爾 (Raphael)',
+                year: 'c. 1505–1506',
+                floor: '1F',
+                room: 'Room 9',
+                roomCode: 'R9',
+                img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Raffaello_Sanzio_-_Dama_col_liocorno_-_Google_Art_Project.jpg/800px-Raffaello_Sanzio_-_Dama_col_liocorno_-_Google_Art_Project.jpg',
+                audioText: '這位女性手裡抱著一隻獨角獸。獨角獸在當時象徵純潔，因此可能與女性的婚姻與貞潔有關。但這幅畫還有一個很有趣的秘密：後來的檢查發現，獨角獸原本可能是一隻狗，代表婚姻忠誠；之後才被改成現在的獨角獸。所以你看到的不只是拉斐爾的肖像，也能看到後世如何修改與重新理解藝術品。',
+                highlights: '獨角獸，以及畫面曾經被後人修改的痕跡。'
+            },
+            {
+                id: 'correggio-danae',
+                title: '⑭ 柯雷喬《達娜厄》',
+                artist: '柯雷喬 (Correggio)',
+                year: 'c. 1531',
+                floor: '1F',
+                room: 'Room 10',
+                roomCode: 'R10',
+                img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Correggio_Danae.jpg/800px-Correggio_Danae.jpg',
+                audioText: '這幅畫講的是宙斯愛上達娜厄的故事。宙斯化身成金色的雨，從上方降落到達娜厄身上。請注意畫面下方的小愛神，他正在用試金石檢驗金子。這個細節讓神話故事變得非常生動。整幅畫的特色不是激烈的戲劇，而是柔和的光線、肌膚和金色。',
+                highlights: '金色的宙斯、達娜厄的姿態，以及小愛神檢驗金子的細節。'
+            },
+            {
+                id: 'titian-sacred-profane',
+                title: '⑮ 提香《神聖與世俗之愛》',
+                artist: '提香 (Titian)',
+                year: '1514',
+                floor: '1F',
+                room: 'Room 20',
+                roomCode: 'R20',
+                img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Amor_Sacro_y_Amor_Profano%2C_por_Tiziano.jpg/800px-Amor_Sacro_y_Amor_Profano%2C_por_Tiziano.jpg',
+                audioText: '這幅畫最明顯的是兩位女性：一位穿著華麗服裝，一位則赤裸。過去常直接解釋成「神聖之愛」與「世俗之愛」，但現在也常從婚姻寓意來理解。請看兩人中間的石棺形水池，以及水中的小愛神。這些元素都和愛情、婚姻與生命有關。所以不要只問「哪個女人代表什麼」，更值得看的是提香如何把愛情、婚姻、身分與慾望放在同一幅畫中。',
+                highlights: '兩位女性的對比，以及中央水池與小愛神。'
+            },
+            {
+                id: 'titian-venus-cupid',
+                title: '⑯ 提香《維納斯給丘比特蒙眼》',
+                artist: '提香 (Titian)',
+                year: 'c. 1565',
+                floor: '1F',
+                room: 'Room 20',
+                roomCode: 'R20',
+                img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Titian_-_Venus_Blindfolding_Cupid_-_WGA22967.jpg/800px-Titian_-_Venus_Blindfolding_Cupid_-_WGA22967.jpg',
+                audioText: '畫面中，維納斯正在替丘比特蒙住眼睛。這個動作很容易讓人想到一句話：愛是盲目的。但這幅畫的真正寓意一直有不同解釋，也可能涉及不同形式的愛。請注意提香的色彩。人物的皮膚、紅色布料、藍色和粉紅色天空互相融合。到了提香晚期，輪廓不再像早期文藝復興那麼銳利，而是開始由色彩本身塑造人物。',
+                highlights: '蒙眼的丘比特，以及提香晚期以色彩取代清晰線條的畫法。'
+            },
+            {
+                id: 'rubens-pieta',
+                title: '⑰ 魯本斯《基督哀悼》',
+                artist: '魯本斯 (Peter Paul Rubens)',
+                year: '1602',
+                floor: '1F',
+                room: 'Room 18',
+                roomCode: 'R18',
+                img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f3/Peter_Paul_Rubens_-_Piet%C3%A0_-_WGA20324.jpg/800px-Peter_Paul_Rubens_-_Piet%C3%A0_-_WGA20324.jpg',
+                audioText: '這件作品可以看到北方巴洛克藝術的特色。魯本斯把基督的身體畫得非常有重量，人物彼此交錯，形成強烈的斜線與動態。如果剛才看過貝尼尼，可以注意兩者的差異：貝尼尼用真正的三度空間讓身體動起來；魯本斯則利用人體、色彩、光線與斜線讓平面上的人物產生動態。',
+                highlights: '基督身體的重量，以及整幅畫強烈的戲劇性。'
+            }
+        ];
+
+        let currentTab = 'artworks';
+        let currentArtwork = artworksData[0];
+        let activeFloorFilter = 'all';
+        let favorites = new Set(JSON.parse(localStorage.getItem('borghese_favs') || '[]'));
+        let showFavoritesOnly = false;
+
+        /* Map Interactive State */
+        let currentActiveFloor = '0F';
+        let mapScale = 1.8;
+        let mapPanX = 0;
+        let mapPanY = 0;
+        let isMapDragging = false;
+        let mapDragStartX = 0;
+        let mapDragStartY = 0;
+
+        /* Speech Synthesis States */
+        let isPlaying = false;
+        let speechProgressTimer = null;
+        let playbackSpeed = 1.0;
+
+        window.onload = function() {
+            lucide.createIcons();
+            renderArtworkList();
+            renderRouteSteps();
+            updatePlayerBarUI();
+            initInteractiveMapEvents();
+            if (currentArtwork) {
+                switchMapFloor(currentArtwork.floor);
+                highlightRoomOnMap(currentArtwork.roomCode);
+            }
+        };
+
+        function switchTab(tabName) {
+            currentTab = tabName;
+            ['artworks', 'map', 'info'].forEach(t => {
+                const el = document.getElementById(`tab-${t}`);
+                const navBtn = document.getElementById(`nav-${t}`);
+                if (t === tabName) {
+                    el.classList.remove('hidden');
+                    navBtn.classList.add('text-ferrari-yellow');
+                    navBtn.classList.remove('text-gray-500');
+                } else {
+                    el.classList.add('hidden');
+                    navBtn.classList.remove('text-ferrari-yellow');
+                    navBtn.classList.add('text-gray-500');
+                }
+            });
+
+            if (tabName === 'map' && currentArtwork) {
+                switchMapFloor(currentArtwork.floor);
+                highlightRoomOnMap(currentArtwork.roomCode);
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function filterByFloor(floor) {
+            activeFloorFilter = floor;
+            document.querySelectorAll('.floor-tab-btn').forEach(btn => {
+                btn.classList.remove('bg-ferrari-carbon', 'text-ferrari-yellow', 'active');
+                btn.classList.add('bg-carbon-pattern', 'text-gray-300', 'border-gray-700');
+            });
+            event.currentTarget.classList.add('bg-ferrari-carbon', 'text-ferrari-yellow', 'active');
+            event.currentTarget.classList.remove('bg-carbon-pattern', 'text-gray-300', 'border-gray-700');
+            renderArtworkList();
+        }
+
+        function filterArtworks() {
+            renderArtworkList();
+        }
+
+        function toggleFavoriteFilter() {
+            showFavoritesOnly = !showFavoritesOnly;
+            const btn = document.getElementById('fav-filter-btn');
+            if (showFavoritesOnly) {
+                btn.classList.add('text-ferrari-yellow', 'border-ferrari-yellow');
+            } else {
+                btn.classList.remove('text-ferrari-yellow', 'border-ferrari-yellow');
+            }
+            renderArtworkList();
+        }
+
+        function renderArtworkList() {
+            const searchKeyword = document.getElementById('search-input').value.toLowerCase().trim();
+            const container = document.getElementById('artwork-list');
+            container.innerHTML = '';
+
+            const filtered = artworksData.filter(item => {
+                const matchFloor = activeFloorFilter === 'all' || item.floor === activeFloorFilter;
+                const matchSearch = item.title.toLowerCase().includes(searchKeyword) || 
+                                    item.artist.toLowerCase().includes(searchKeyword) || 
+                                    item.room.toLowerCase().includes(searchKeyword);
+                const matchFav = !showFavoritesOnly || favorites.has(item.id);
+                return matchFloor && matchSearch && matchFav;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="p-8 text-center text-gray-500 text-[15px]">
+                        <i data-lucide="search-x" class="w-8 h-8 mx-auto mb-2 text-gray-600"></i>
+                        沒有找到符合條件的展品
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            filtered.forEach(item => {
+                const isFav = favorites.has(item.id);
+                const isCurrent = currentArtwork && currentArtwork.id === item.id;
+
+                const card = document.createElement('div');
+                card.className = `carbon-card rounded-2xl p-3 flex gap-3 items-center cursor-pointer transition ${isCurrent ? 'carbon-card-active' : ''}`;
+                card.onclick = () => selectArtwork(item);
+
+                card.innerHTML = `
+                    <div class="relative w-20 h-20 rounded-xl overflow-hidden bg-black flex-shrink-0 border border-white/10">
+                        <img src="${item.img}" alt="${item.title}" class="w-full h-full object-cover">
+                        <span class="absolute top-1 left-1 bg-ferrari-red/90 text-white font-tech text-[12px] font-bold px-1.5 py-0.2 rounded">
+                            ${item.roomCode}
+                        </span>
+                    </div>
+                    <div class="flex-1 min-w-0 space-y-1">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-[15px] font-bold text-white truncate">${item.title}</h3>
+                            <button onclick="event.stopPropagation(); toggleFavorite('${item.id}')" class="text-gray-400 hover:text-ferrari-yellow p-1">
+                                <i data-lucide="bookmark" class="w-4 h-4 ${isFav ? 'text-ferrari-yellow fill-ferrari-yellow' : ''}"></i>
+                            </button>
+                        </div>
+                        <p class="text-[13px] text-gray-400 truncate">${item.artist}</p>
+                        <div class="flex items-center gap-2 text-[13px] text-gray-400 font-tech">
+                            <span class="text-ferrari-gold font-bold">${item.room}</span>
+                            <span>•</span>
+                            <span class="truncate text-gray-300">${item.highlights}</span>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            lucide.createIcons();
+        }
+
+        function selectArtwork(item) {
+            currentArtwork = item;
+            renderArtworkList();
+            updatePlayerBarUI();
+            switchMapFloor(item.floor);
+            highlightRoomOnMap(item.roomCode);
+            openArtworkModal();
+            readAudioSpeech();
+        }
+
+        function selectArtworkByRoom(roomCode) {
+            const found = artworksData.find(a => a.roomCode === roomCode);
+            if (found) {
+                selectArtwork(found);
+            } else {
+                highlightRoomOnMap(roomCode);
+            }
+        }
+
+        function highlightRoomOnMap(roomCode) {
+            document.querySelectorAll('.room-box').forEach(el => {
+                el.classList.remove('active-room');
+            });
+            if (!roomCode) return;
+
+            const target = document.getElementById(`room-${roomCode}`);
+            if (target) {
+                target.classList.add('active-room');
+                const tagEl = document.getElementById('flashing-room-tag');
+                if (tagEl) {
+                    tagEl.innerHTML = `<span class="animate-pulse text-ferrari-yellow">⚡ 當前定位: ${roomCode} 展廳</span>`;
+                }
+            }
+        }
+
+        function toggleFavorite(id) {
+            if (favorites.has(id)) {
+                favorites.delete(id);
+            } else {
+                favorites.add(id);
+            }
+            localStorage.setItem('borghese_favs', JSON.stringify([...favorites]));
+            renderArtworkList();
+            updateModalFavButton();
+        }
+
+        function toggleCurrentFavorite() {
+            if (currentArtwork) {
+                toggleFavorite(currentArtwork.id);
+            }
+        }
+
+        function updateModalFavButton() {
+            if (!currentArtwork) return;
+            const isFav = favorites.has(currentArtwork.id);
+            const btn = document.getElementById('modal-fav-btn');
+            if (btn) {
+                btn.innerHTML = `<i data-lucide="bookmark" class="w-5 h-5 ${isFav ? 'text-ferrari-yellow fill-ferrari-yellow' : ''}"></i>`;
+                lucide.createIcons();
+            }
+        }
+
+        function renderRouteSteps() {
+            const container = document.getElementById('route-steps');
+            if (!container) return;
+
+            let html = `
+                <div class="mb-2 p-2 bg-ferrari-carbon border border-ferrari-red/40 rounded-xl">
+                    <span class="text-[13px] font-bold text-ferrari-yellow flex items-center gap-1">
+                        <i data-lucide="layers" class="w-3.5 h-3.5"></i> 地下層 (Sculpture Rooms 1-8)
+                    </span>
+                </div>
+            `;
+
+            artworksData.forEach((item, idx) => {
+                if (idx === 11) {
+                    html += `
+                        <div class="mt-4 mb-2 p-2 bg-ferrari-carbon border border-ferrari-red/40 rounded-xl">
+                            <span class="text-[13px] font-bold text-ferrari-yellow flex items-center gap-1">
+                                <i data-lucide="layers" class="w-3.5 h-3.5"></i> 一樓 (Picture Gallery Rooms 9-20)
+                            </span>
+                        </div>
+                    `;
+                }
+
+                html += `
+                    <div onclick="selectArtworkByRoom('${item.roomCode}')" class="p-2.5 bg-black/40 hover:bg-black/80 rounded-xl border border-white/10 flex items-center justify-between cursor-pointer transition">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <span class="w-6 h-6 rounded-full bg-ferrari-carbon border border-ferrari-gold text-ferrari-gold text-[12px] font-bold flex items-center justify-center shrink-0">
+                                ${idx + 1}
+                            </span>
+                            <div class="min-w-0">
+                                <h4 class="text-[14px] font-bold text-white truncate">${item.title}</h4>
+                                <p class="text-[12px] text-gray-400 truncate">${item.room} · ${item.artist}</p>
+                            </div>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-500 shrink-0"></i>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        function switchMapFloor(floor) {
+            currentActiveFloor = floor;
+            document.getElementById('map-floor-title').innerText = floor === '0F' ? 'GROUND FLOOR (地下層：雕塑與卡拉瓦喬廳)' : 'FIRST FLOOR (一樓：繪畫展廳)';
+            const btn0f = document.getElementById('btn-map-0f');
+            const btn1f = document.getElementById('btn-map-1f');
+            const map0f = document.getElementById('map-graphic-0f');
+            const map1f = document.getElementById('map-graphic-1f');
+
+            if (floor === '0F') {
+                btn0f.className = 'text-sm px-2.5 py-1 rounded-lg font-bold bg-ferrari-carbon border border-ferrari-red text-white';
+                btn1f.className = 'text-sm px-2.5 py-1 rounded-lg font-bold text-gray-400 hover:text-white';
+                map0f.classList.remove('hidden');
+                map1f.classList.add('hidden');
+            } else {
+                btn1f.className = 'text-sm px-2.5 py-1 rounded-lg font-bold bg-ferrari-carbon border border-ferrari-red text-white';
+                btn0f.className = 'text-sm px-2.5 py-1 rounded-lg font-bold text-gray-400 hover:text-white';
+                map1f.classList.remove('hidden');
+                map0f.classList.add('hidden');
+            }
+
+            applyMapTransform();
+            if (currentArtwork) {
+                highlightRoomOnMap(currentArtwork.roomCode);
+            }
+        }
+
+        function applyMapTransform() {
+            const viewport = document.getElementById(`map-viewport-${currentActiveFloor.toLowerCase()}`);
+            if (viewport) {
+                viewport.style.transform = `translate(${mapPanX}px, ${mapPanY}px) scale(${mapScale})`;
+            }
+        }
+
+        function zoomMap(delta) {
+            mapScale = Math.min(Math.max(1.0, mapScale + delta), 3.5);
+            applyMapTransform();
+        }
+
+        function resetMapZoom() {
+            mapScale = 1.8;
+            mapPanX = 0;
+            mapPanY = 0;
+            applyMapTransform();
+        }
+
+        function initInteractiveMapEvents() {
+            ['0f', '1f'].forEach(floor => {
+                const container = document.getElementById(`map-graphic-${floor}`);
+                if (!container) return;
+
+                container.addEventListener('mousedown', (e) => {
+                    isMapDragging = true;
+                    mapDragStartX = e.clientX - mapPanX;
+                    mapDragStartY = e.clientY - mapPanY;
+                });
+
+                window.addEventListener('mousemove', (e) => {
+                    if (!isMapDragging) return;
+                    mapPanX = e.clientX - mapDragStartX;
+                    mapPanY = e.clientY - mapDragStartY;
+                    applyMapTransform();
+                });
+
+                window.addEventListener('mouseup', () => {
+                    isMapDragging = false;
+                });
+
+                container.addEventListener('touchstart', (e) => {
+                    if (e.touches.length === 1) {
+                        isMapDragging = true;
+                        mapDragStartX = e.touches[0].clientX - mapPanX;
+                        mapDragStartY = e.touches[0].clientY - mapPanY;
+                    }
+                }, { passive: true });
+
+                container.addEventListener('touchmove', (e) => {
+                    if (isMapDragging && e.touches.length === 1) {
+                        mapPanX = e.touches[0].clientX - mapDragStartX;
+                        mapPanY = e.touches[0].clientY - mapDragStartY;
+                        applyMapTransform();
+                    }
+                }, { passive: true });
+
+                container.addEventListener('touchend', () => {
+                    isMapDragging = false;
+                });
+            });
+        }
+
+        function openArtworkModal() {
+            if (!currentArtwork) return;
+            document.getElementById('modal-image').src = currentArtwork.img;
+            document.getElementById('modal-title').innerText = currentArtwork.title;
+            document.getElementById('modal-artist').innerText = currentArtwork.artist;
+            document.getElementById('modal-year').innerText = currentArtwork.year;
+            document.getElementById('modal-room-badge').innerText = `${currentArtwork.room}`;
+            document.getElementById('modal-description').innerText = currentArtwork.audioText;
+            document.getElementById('modal-highlights').innerText = currentArtwork.highlights;
+
+            updateModalFavButton();
+            document.getElementById('artwork-modal').classList.remove('hidden');
+        }
+
+        function closeArtworkModal() {
+            document.getElementById('artwork-modal').classList.add('hidden');
+        }
+
+        function updatePlayerBarUI() {
+            if (!currentArtwork) return;
+            document.getElementById('player-thumb').src = currentArtwork.img;
+            document.getElementById('player-title').innerText = currentArtwork.title;
+            document.getElementById('player-artist').innerText = currentArtwork.artist;
+            document.getElementById('player-room').innerText = currentArtwork.room;
+        }
+
+        function toggleAudioSpeech() {
+            if (isPlaying) {
+                stopAudioSpeech();
+            } else {
+                readAudioSpeech();
+            }
+        }
+
+        function readAudioSpeech() {
+            if (!currentArtwork) return;
+            window.speechSynthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(currentArtwork.title + '。' + currentArtwork.audioText);
+            utterance.lang = 'zh-TW';
+            utterance.rate = playbackSpeed;
+
+            utterance.onstart = function() {
+                isPlaying = true;
+                updatePlayIcons(true);
+            };
+
+            utterance.onend = function() {
+                isPlaying = false;
+                updatePlayIcons(false);
+                document.getElementById('audio-progress-bar').style.width = '0%';
+            };
+
+            utterance.onerror = function() {
+                isPlaying = false;
+                updatePlayIcons(false);
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function stopAudioSpeech() {
+            window.speechSynthesis.cancel();
+            isPlaying = false;
+            updatePlayIcons(false);
+            document.getElementById('audio-progress-bar').style.width = '0%';
+        }
+
+        function changeSpeed() {
+            if (playbackSpeed === 1.0) playbackSpeed = 1.25;
+            else if (playbackSpeed === 1.25) playbackSpeed = 1.5;
+            else playbackSpeed = 1.0;
+
+            document.getElementById('modal-speed-btn').innerText = `${playbackSpeed}x 語速`;
+            if (isPlaying) {
+                readAudioSpeech();
+            }
+        }
+
+        function updatePlayIcons(playing) {
+            const playIcon = document.getElementById('play-icon');
+            const modalPlayIcon = document.getElementById('modal-play-icon');
+
+            if (playing) {
+                if (playIcon) playIcon.setAttribute('data-lucide', 'pause');
+                if (modalPlayIcon) modalPlayIcon.setAttribute('data-lucide', 'pause');
+            } else {
+                if (playIcon) playIcon.setAttribute('data-lucide', 'play');
+                if (modalPlayIcon) modalPlayIcon.setAttribute('data-lucide', 'play');
+            }
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
