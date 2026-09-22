@@ -1150,71 +1150,95 @@
             document.getElementById('player-room').innerText = currentArtwork.room;
         }
 
-        function toggleAudioSpeech() {
-            if (isPlaying) {
-                stopAudioSpeech();
-            } else {
-                readAudioSpeech();
-            }
-        }
-
+        /* Web Speech Synthesis (語音導覽播放系統) */
         function readAudioSpeech() {
-            if (!currentArtwork) return;
-            window.speechSynthesis.cancel();
-
-            const utterance = new SpeechSynthesisUtterance(currentArtwork.title + '。' + currentArtwork.audioText);
-            utterance.lang = 'zh-TW';
-            utterance.rate = playbackSpeed;
-
-            utterance.onstart = function() {
-                isPlaying = true;
-                updatePlayIcons(true);
-            };
-
-            utterance.onend = function() {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
                 isPlaying = false;
-                updatePlayIcons(false);
-                document.getElementById('audio-progress-bar').style.width = '0%';
-            };
+                playProgressPercent = 0;
+                
+                const utterance = new SpeechSynthesisUtterance(currentArtwork.audioText);
+                utterance.lang = 'zh-TW';
+                utterance.rate = playbackSpeed;
 
-            utterance.onerror = function() {
-                isPlaying = false;
-                updatePlayIcons(false);
-            };
+                utterance.onstart = () => {
+                    isPlaying = true;
+                    updatePlayIcons(true);
+                    startProgressTimer();
+                    // 播放語音時確保地圖上該展廳持續閃爍
+                    highlightRoomOnMap(currentArtwork.roomCode);
+                };
 
-            window.speechSynthesis.speak(utterance);
-        }
+                utterance.onend = () => {
+                    isPlaying = false;
+                    playProgressPercent = 100;
+                    updatePlayIcons(false);
+                    stopProgressTimer();
+                };
 
-        function stopAudioSpeech() {
-            window.speechSynthesis.cancel();
-            isPlaying = false;
-            updatePlayIcons(false);
-            document.getElementById('audio-progress-bar').style.width = '0%';
-        }
-
-        function changeSpeed() {
-            if (playbackSpeed === 1.0) playbackSpeed = 1.25;
-            else if (playbackSpeed === 1.25) playbackSpeed = 1.5;
-            else playbackSpeed = 1.0;
-
-            document.getElementById('modal-speed-btn').innerText = `${playbackSpeed}x 語速`;
-            if (isPlaying) {
-                readAudioSpeech();
+                window.speechSynthesis.speak(utterance);
             }
+        }
+
+        function toggleAudioSpeech() {
+            if ('speechSynthesis' in window) {
+                if (window.speechSynthesis.speaking) {
+                    if (window.speechSynthesis.paused) {
+                        window.speechSynthesis.resume();
+                        isPlaying = true;
+                        updatePlayIcons(true);
+                        startProgressTimer();
+                    } else {
+                        window.speechSynthesis.pause();
+                        isPlaying = false;
+                        updatePlayIcons(false);
+                        stopProgressTimer();
+                    }
+                } else {
+                    readAudioSpeech();
+                }
+            }
+            // 點擊聆聽按鈕時閃爍烏菲茲實境地圖該區域
+            highlightRoomOnMap(currentArtwork.roomCode);
         }
 
         function updatePlayIcons(playing) {
-            const playIcon = document.getElementById('play-icon');
-            const modalPlayIcon = document.getElementById('modal-play-icon');
-
+            const icon1 = document.getElementById('play-icon');
+            const icon2 = document.getElementById('modal-play-icon');
             if (playing) {
-                if (playIcon) playIcon.setAttribute('data-lucide', 'pause');
-                if (modalPlayIcon) modalPlayIcon.setAttribute('data-lucide', 'pause');
+                if (icon1) icon1.setAttribute('data-lucide', 'pause');
+                if (icon2) icon2.setAttribute('data-lucide', 'pause');
             } else {
-                if (playIcon) playIcon.setAttribute('data-lucide', 'play');
-                if (modalPlayIcon) modalPlayIcon.setAttribute('data-lucide', 'play');
+                if (icon1) icon1.setAttribute('data-lucide', 'play');
+                if (icon2) icon2.setAttribute('data-lucide', 'play');
             }
             lucide.createIcons();
+        }
+
+        function changeSpeed() {
+            const speeds = [1.0, 1.25, 1.5, 0.75];
+            const currIdx = speeds.indexOf(playbackSpeed);
+            playbackSpeed = speeds[(currIdx + 1) % speeds.length];
+            const speedBtn = document.getElementById('modal-speed-btn');
+            if (speedBtn) speedBtn.innerText = `${playbackSpeed}x 語速`;
+            if (isPlaying) {
+                readAudioSpeech();
+            }
+        }
+
+        function startProgressTimer() {
+            stopProgressTimer();
+            speechProgressTimer = setInterval(() => {
+                if (playProgressPercent < 100) {
+                    playProgressPercent += 1;
+                    const bar = document.getElementById('audio-progress-bar');
+                    if (bar) bar.style.width = `${playProgressPercent}%`;
+                }
+            }, 300);
+        }
+
+        function stopProgressTimer() {
+            if (speechProgressTimer) clearInterval(speechProgressTimer);
         }
     </script>
 </body>
